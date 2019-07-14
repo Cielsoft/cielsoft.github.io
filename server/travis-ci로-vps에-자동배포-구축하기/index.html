@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko-kr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>Travis CI로 VPS에 자동배포 구축하기 - 시엘 기술 블로그</title>
+    
+    <meta name="description" content="안녕하세요. 저는 시엘 차장과 시엘 뮤직 개발 총괄을 맡고 있는 강희원입니다.
+ 자동 배포를 결심한 이유 시엘 뮤직은 Vue.js &#43; Nuxt.js 기반으로 프론트 단이 구성되어 있습니다. 개발 서버를 이용해 SSR을 적용한 채로 테스트를 진행하고 싶었으나 팀 사정으로 인해 netlify라는 github page와 유사한 배포 플랫폼을 사용하고 있었습니다. 하지만 백엔드 개발이 점점 진행되어 자체 서버를 도입하기로 했고, 자동배포까지 진행하도록 결정했습니다.
+Travis CI 이전까지 Travis CI는 테스트 목적으로 사용했습니다. 하지만 Travis를 통한 Hugo 자동 배포를 경험해 본 이후 Travis로 vps에 배포해보고자 하는 욕심이 생겨났고 시엘뮤직에 적용하게 된 계기가 된 것 같습니다.">
+    <meta name="author" content="kang-heewon">
+    
+    <link href="https://cielsoft.github.io/css/github-gist.min.css" rel="stylesheet">
+    <link href="https://cielsoft.github.io/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
+    
+    <link rel="apple-touch-icon" href="https://cielsoft.github.io/img/apple-touch-icon.png">
+    <link rel="icon" href="https://cielsoft.github.io/img/favicon.ico">
+    
+    <meta name="generator" content="Hugo 0.55.6" />
+    
+    <link rel="alternate" type="application/atom+xml" href="https://cielsoft.github.io/index.xml" title="시엘 기술 블로그">
+    
+    
+    
+  </head>
+  <body class="single">
+    <header class="header">
+      <div class="wrap">
+        
+        <p class="logo"><a href="https://cielsoft.github.io">시엘 기술 블로그</a></p>
+        
+        
+      </div>
+    </header>
+    
+    <main class="main">
+
+
+<article class="post-single">
+  
+  <header class="post-header">
+    <h1 class="post-title">Travis CI로 VPS에 자동배포 구축하기</h1>
+    <div class="post-meta"><a href="https://github.com/kang-heewon">kang-heewon</a> · 
+        2019.6.25</div>
+  </header>
+  
+  <div class="post-content">
+
+<blockquote>
+<p>안녕하세요. 저는 시엘 차장과 시엘 뮤직 개발 총괄을 맡고 있는 강희원입니다.</p>
+</blockquote>
+
+<h2 id="자동-배포를-결심한-이유">자동 배포를 결심한 이유</h2>
+
+<p>시엘 뮤직은 Vue.js + Nuxt.js 기반으로 프론트 단이 구성되어 있습니다. 개발 서버를 이용해 SSR을 적용한 채로 테스트를 진행하고 싶었으나 팀 사정으로 인해 netlify라는 github page와 유사한 배포 플랫폼을 사용하고 있었습니다. 하지만 백엔드 개발이 점점 진행되어 자체 서버를 도입하기로 했고, 자동배포까지 진행하도록 결정했습니다.</p>
+
+<h2 id="travis-ci">Travis CI</h2>
+
+<p>이전까지 Travis CI는 테스트 목적으로 사용했습니다. 하지만 Travis를 통한 Hugo 자동 배포를 경험해 본 이후 Travis로 vps에 배포해보고자 하는 욕심이 생겨났고 시엘뮤직에 적용하게 된 계기가 된 것 같습니다.</p>
+
+<p>travis 자체는 상당히 편리합니다. 깃허브 계정과 연동되어 몇 가지만 설정해주면 빠르게 빌드를 시작합니다. 또한 지원하는 기능도 많아 AWS S3등에 배포하기는 상당히 좋습니다. 다만 저희 팀은 자체 서버를 가지고 있었기에 자체 테스트 서버에 배포해보았습니다.</p>
+
+<h2 id="travis-설치">Travis 설치</h2>
+
+<p>이 튜토리얼(?)에서는 작업중인 로컬 컴퓨터, 리모트 서버(배포할 서버), 깃허브가 등장합니다. 대부분의 작업을 로컬에서 진행하지만 가끔 리모트 서버에서 작업해야하는 경우가 있으므로 주의하시기 바랍니다.</p>
+
+<p>먼저 로컬 컴퓨터에서 travis를 설치해줍니다. (ruby가 설치되어 있어야하며 최소 버전이 2.3.1이상이어야 합니다)</p>
+
+<pre><code class="language-sh">gem install travis
+</code></pre>
+
+<h2 id="travis-설정-파일">travis 설정 파일</h2>
+
+<p>이후 작업 폴더에 .travis.yml 파일을 생성해줍니다.</p>
+
+<pre><code class="language-yml">language: node_js
+node_js:
+- '11'
+dist: bionic
+sudo: false
+addons:
+  ssh_known_hosts:
+  - 서버주소(ip or domain)
+before_install:
+- eval &quot;$(ssh-agent -s)&quot;
+- cp .travis/deploy_rsa ~/.ssh/deploy_rsa
+- chmod 600 ~/.ssh/deploy_rsa
+- ssh-add ~/.ssh/deploy_rsa
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: &quot;.travis/deploy.sh&quot;
+  on:
+    branch: master
+
+</code></pre>
+
+<h2 id="ssh-키-생성">SSH 키 생성</h2>
+
+<p>이제 우리는 SSH를 통해 리모트 서버에 접근할 수 있도록 키를 생성해줄겁니다.</p>
+
+<p>작업중이던 폴더에서 .travis폴더를 생성하고 .travis/.gitignore에 밑의 두 항목을 추가해줍니다.</p>
+
+<p>이후에 이루어지는 모든 작업은 .travis 폴더 안에서 이루어집니다.</p>
+
+<pre><code class="language-sh">deploy_rsa.pub
+deploy_rsa
+</code></pre>
+
+<p>이 키를 통해 리모트 서버에 접근할 것이기 때문에 깃허브에 올라가지 않도록 조심해야합니다.</p>
+
+<p>아래 명령어를 통해 ssh 키를 생성합니다.</p>
+
+<pre><code class="language-sh">sh-keygen -t rsa -b 4096 -C 'build@travis-ci.org' -f deploy_rsa
+</code></pre>
+
+<p>.travis폴더 안에 deploy_rsa deploy_rsa.pub 두 파일이 보인다면 아래 명령어를 통해 트래비스에 등록해주세요.</p>
+
+<pre><code class="language-sh">travis encrypt-file deploy_rsa --add
+</code></pre>
+
+<p>등록을 마치면 deploy_rsa.enc파일이 생성되고, 상위폴더의 .travis.yml의 before_install 부분에 아래와 같은 구문이 생겼을 겁니다.</p>
+
+<pre><code class="language-yml">before_install:
+- openssl aes-256-cbc -K $encrypted_e92badce6860_key -iv $encrypted_e92badce6860_iv
+  -in deploy_rsa.enc -out deploy_rsa -d
+</code></pre>
+
+<p>(실제 코드는 동일하지 않습니다. 형태만 같을뿐 변수들이 다를 수 있습니다)</p>
+
+<p>위의 부분에서 deploy_rsa.enc와 deploy_rsa를 .travis/deploy_rsa.enc와 .travis/deploy_rsa로 바꿔줍니다.</p>
+
+<h2 id="ssh-키-등록">SSH 키 등록</h2>
+
+<p>이제 리모트 서버에 키를 등록해주면 됩니다.</p>
+
+<pre><code class="language-sh">ssh-copy-id -i .travis/deploy_rsa.pub &lt;유저&gt;@&lt;리모트서버주소 or 서버 도메인&gt;
+</code></pre>
+
+<h2 id="배포-스크립트-만들기">배포 스크립트 만들기</h2>
+
+<p>ssh 키까지 등록해줬으면 리모트 서버에 코드가 올라가고 서버가 실행될 수 있도록 .travis폴더 안에 deploy.sh파일을 만들어줍니다.</p>
+
+<pre><code class="language-bash">#!/bin/bash
+set -e
+git config --global push.default simple
+git remote add deploy ssh://&lt;유저&gt;@&lt;리모트서버주소 or 서버 도메인&gt;/배포할 디렉토리 주소
+git push deploy master
+ssh &lt;유저&gt;@&lt;리모트서버주소 or 서버 도메인&gt; &quot;명령어&quot;
+</code></pre>
+
+<p>이 배포 스크립트를 통해 travis를 통해 배포하기 쉽지 않은 docker배포도 가능하답니다!</p>
+</div>
+  <footer class="post-footer">
+    
+  </footer>
+  
+  <script src="https://utteranc.es/client.js"
+        repo="Cielsoft/cielsoft.github.io"
+        issue-term="title"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+  </script> 
+  
+</article>
+
+</main>
+<footer class="footer">
+  <span>&copy; 2019 <a href="https://cielsoft.github.io">시엘 기술 블로그</a></span>
+</footer>
+<script src="https://cielsoft.github.io/js/instantclick.min.js" data-no-instant></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cielsoft.github.io/js/highlight.min.js" data-no-instant></script>
+<script data-no-instant>
+  let body;
+  function menuToggleListener() {
+    body.classList.toggle('blur');
+  }
+  function setMenuToggleListener() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (!menuToggle) return;
+    body = document.querySelector('body');
+    menuToggle.addEventListener('click', menuToggleListener);
+  }
+
+  hljs.initHighlightingOnLoad();
+  setMenuToggleListener();
+
+  InstantClick.on('change', function () {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block);
+    });
+    setMenuToggleListener();
+  });
+</script>
+</body>
+</html>
+

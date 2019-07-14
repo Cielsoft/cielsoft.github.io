@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko-kr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <title>Posts - 시엘 기술 블로그</title>
+    
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <link href="https://cielsoft.github.io/css/github-gist.min.css" rel="stylesheet">
+    <link href="https://cielsoft.github.io/css/style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
+    
+    <link rel="apple-touch-icon" href="https://cielsoft.github.io/img/apple-touch-icon.png">
+    <link rel="icon" href="https://cielsoft.github.io/img/favicon.ico">
+    
+    <meta name="generator" content="Hugo 0.55.6" />
+    
+    <link rel="alternate" type="application/atom+xml" href="https://cielsoft.github.io/index.xml" title="시엘 기술 블로그">
+    
+    
+    
+  </head>
+  <body class="list">
+    <header class="header">
+      <div class="wrap">
+        
+        <p class="logo"><a href="https://cielsoft.github.io">시엘 기술 블로그</a></p>
+        
+        
+      </div>
+    </header>
+    
+    <main class="main">
+
+
+
+<header class="page-header">
+  <h1>
+  Posts
+  </h1>
+</header>
+
+
+
+
+
+<article class="post-entry">
+  <header class="entry-header">
+    <h2>Travis CI로 VPS에 자동배포 구축하기</h2>
+  </header>
+  <section class="entry-content">
+   <p>안녕하세요. 저는 시엘 차장과 시엘 뮤직 개발 총괄을 맡고 있는 강희원입니다.
+ 자동 배포를 결심한 이유 시엘 뮤직은 Vue.js &#43; Nuxt.js 기반으로 프론트 단이 구성되어 있습니다. 개발 서버를 이용해 SSR을 적용한 채로 테스트를 진행하고 싶었으나 팀 사정으로 인해 netlify라는 github page와 유사한 배포 플랫폼을 사용하고 있었습니다. 하지만 백엔드 개발이 점점 진행되어 자체 서버를 도입하기로 했고, 자동배포까지 진행하도록 결정했습니다.
+Travis CI 이전까지 Travis CI는 테스트 목적으로 사용했습니다. 하지만 Travis를 통한 Hugo 자동 배포를 경험해 본 이후 Travis로 vps에 배포해보고자 하는 욕심이 생겨났고 시엘뮤직에 적용하게 된 계기가 된 것 같습니다....</p>
+  </section>
+  <footer class="entry-footer">
+    <time>2019.6.25</time>
+  </footer>
+  <a class="entry-link" href="https://cielsoft.github.io/server/travis-ci%EB%A1%9C-vps%EC%97%90-%EC%9E%90%EB%8F%99%EB%B0%B0%ED%8F%AC-%EA%B5%AC%EC%B6%95%ED%95%98%EA%B8%B0/"></a>
+</article>
+
+
+
+
+
+</main>
+<footer class="footer">
+  <span>&copy; 2019 <a href="https://cielsoft.github.io">시엘 기술 블로그</a></span>
+</footer>
+<script src="https://cielsoft.github.io/js/instantclick.min.js" data-no-instant></script>
+<script data-no-instant>InstantClick.init();</script>
+<script src="https://cielsoft.github.io/js/highlight.min.js" data-no-instant></script>
+<script data-no-instant>
+  let body;
+  function menuToggleListener() {
+    body.classList.toggle('blur');
+  }
+  function setMenuToggleListener() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    if (!menuToggle) return;
+    body = document.querySelector('body');
+    menuToggle.addEventListener('click', menuToggleListener);
+  }
+
+  hljs.initHighlightingOnLoad();
+  setMenuToggleListener();
+
+  InstantClick.on('change', function () {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block);
+    });
+    setMenuToggleListener();
+  });
+</script>
+</body>
+</html>
+
